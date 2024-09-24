@@ -1,21 +1,47 @@
-// Import the Express module
+
 const express = require('express');
+const Joi = require('joi');
 const app = express();
 
-// Middleware to parse JSON bodies in requests
 app.use(express.json());
 
-// In-memory storage to hold some data (for demonstration)
 let items = [
   { id: 1, name: 'Item One' },
-  { id: 2, name: 'Item Two' }
+  { id: 2, name: 'Item Two' },
 ];
 
-// 1. GET endpoint: Retrieve all items
+
 app.get('/items', (req, res) => {
-  res.json(items);  // Respond with all items as JSON
+  res.send(items);  
 });
 
+app.get('/items/:id', (req,res)=>{
+const item = items.find(c => c.id === parseInt(req.params.id));
+if(!item) res.status(404).send('id not found');
+res.send(item);
+
+})
+
+app.post('/items/',(req, res)=>{
+  const schema =  Joi.object({
+    name: Joi.string().min(3).required()
+  });
+
+  const {error} = schema.validate(req.body);
+
+  if(error){
+    return res.status(400).send(error.details[0].message);
+   
+  }
+    const item ={
+    id: items.length+1,
+    name:req.body.name,
+  
+  }
+  items.push(item);
+  res.send(items);
+})
+/*
 // 2. POST endpoint: Add a new item
 app.post('/items', (req, res) => {
   const newItem = req.body;  // Extract new item from request body
@@ -37,7 +63,7 @@ app.post('/items', (req, res) => {
     item: newItem
   });
 });
-
+*/
 // 3. Start the server
 const PORT = 3000;
 app.listen(PORT, () => {
